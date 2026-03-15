@@ -1619,7 +1619,7 @@ body.reveal-ready .section.is-revealed {
     rotateY(calc((360deg / var(--item-total)) * var(--item-index) + var(--orbit-rotation)))
     translateZ(calc(var(--orbit-radius) + var(--depth-shift)))
     rotateY(calc(-1 * ((360deg / var(--item-total)) * var(--item-index) + var(--orbit-rotation))));
-  transition: transform 0.5s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.6);
   backface-visibility: hidden;
   will-change: transform;

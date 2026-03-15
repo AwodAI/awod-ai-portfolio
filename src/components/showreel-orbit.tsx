@@ -19,7 +19,7 @@ export function ShowreelOrbit({ videos }: ShowreelOrbitProps) {
   const targetOrbitRef = useRef(0);
   const draggingRef = useRef(false);
   const lastXRef = useRef(0);
-  const interactionUntilRef = useRef(0);
+  const velocityRef = useRef(0);
   const safeVideos = useMemo(() => videos.slice(0, 12), [videos]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [ratios, setRatios] = useState<Record<string, number>>({});
@@ -29,10 +29,14 @@ export function ShowreelOrbit({ videos }: ShowreelOrbitProps) {
     let animationFrame = 0;
     const AUTO_SPEED = 0.1;
     const LERP = 0.14;
+    const FRICTION = 0.95;
 
-    const tick = (now: number) => {
-      if (!draggingRef.current && now > interactionUntilRef.current) {
-        targetOrbitRef.current += AUTO_SPEED;
+    const tick = () => {
+      if (!draggingRef.current) {
+        velocityRef.current *= FRICTION;
+        const momentumMag = Math.abs(velocityRef.current);
+        const autoBlend = Math.max(0, 1 - momentumMag / 0.5);
+        targetOrbitRef.current += velocityRef.current + AUTO_SPEED * autoBlend;
       }
 
       if (Math.abs(targetOrbitRef.current) > 100000) {
@@ -77,17 +81,12 @@ export function ShowreelOrbit({ videos }: ShowreelOrbitProps) {
     const stage = stageRef.current;
     if (!scene || !stage) return;
 
-    const updateOrbit = (delta: number) => {
-      targetOrbitRef.current += delta;
-      interactionUntilRef.current = performance.now() + 1200;
-    };
-
     const onPointerDown = (event: PointerEvent) => {
       if (event.button !== 0) return;
       draggingRef.current = true;
       lastXRef.current = event.clientX;
+      velocityRef.current = 0;
       scene.classList.add("is-dragging");
-      interactionUntilRef.current = performance.now() + 3000;
       scene.setPointerCapture(event.pointerId);
     };
 
@@ -95,14 +94,15 @@ export function ShowreelOrbit({ videos }: ShowreelOrbitProps) {
       if (!draggingRef.current) return;
       const dx = event.clientX - lastXRef.current;
       lastXRef.current = event.clientX;
-      updateOrbit(dx * 0.42);
+      const delta = dx * 0.42;
+      targetOrbitRef.current += delta;
+      velocityRef.current = delta;
     };
 
     const stopDragging = (event: PointerEvent) => {
       if (!draggingRef.current) return;
       draggingRef.current = false;
       scene.classList.remove("is-dragging");
-      interactionUntilRef.current = performance.now() + 900;
       if (scene.hasPointerCapture(event.pointerId)) {
         scene.releasePointerCapture(event.pointerId);
       }
@@ -186,7 +186,6 @@ export function ShowreelOrbit({ videos }: ShowreelOrbitProps) {
                     aria-label={`Showreel video ${index + 1}`}
                     onClick={() => {
                       setActiveIndex(index);
-                      interactionUntilRef.current = performance.now() + 1200;
                     }}
                     style={style}
                     type="button"

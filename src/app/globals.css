@@ -1517,15 +1517,23 @@ body.reveal-ready .section.is-revealed {
   min-height: auto;
 }
 
+.showreel-stage-shell {
+  min-height: 182vh;
+}
+
 .showreel-sticky {
   --orbit-rotation: 0deg;
+  --intro-progress: 0;
+  --orbit-open: 0;
+  --orbit-reveal: 0;
+  --intro-fade: 1;
   --scroll-pitch: 0deg;
   --depth-shift: 0px;
   --orbit-radius: 380px;
   --orbit-offset-y: 30px;
-  position: relative;
-  top: 0;
-  min-height: auto;
+  position: sticky;
+  top: calc(74px + 0.5rem);
+  min-height: calc(100svh - 74px - 1rem);
   border: 1px solid #2f2f2f;
   border-radius: var(--radius-lg);
   background: radial-gradient(circle at 50% 25%, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01));
@@ -1540,7 +1548,7 @@ body.reveal-ready .section.is-revealed {
   grid-template-columns: 1fr;
   gap: 0.9rem;
   align-items: center;
-  min-height: auto;
+  min-height: calc(100svh - 74px - 1rem);
   padding: 1.15rem;
 }
 
@@ -1548,7 +1556,7 @@ body.reveal-ready .section.is-revealed {
   position: relative;
   border: 1px solid #323232;
   border-radius: 18px;
-  min-height: clamp(520px, 78vh, 860px);
+  min-height: calc(100svh - 74px - 3.2rem);
   overflow: hidden;
   cursor: grab;
   user-select: none;
@@ -1561,6 +1569,25 @@ body.reveal-ready .section.is-revealed {
 
 .showreel-scene.is-dragging {
   cursor: grabbing;
+}
+
+.showreel-scene.is-locked {
+  cursor: default;
+}
+
+.showreel-scene.is-locked .showreel-orbit-card {
+  pointer-events: none;
+}
+
+.showreel-scene.is-locked .showreel-orbit-card-shell {
+  pointer-events: none;
+}
+
+.showreel-scene.is-locked::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 4;
 }
 
 .showreel-hint {
@@ -1578,6 +1605,9 @@ body.reveal-ready .section.is-revealed {
   color: #d6d6d6;
   background: rgba(11, 11, 11, 0.58);
   backdrop-filter: blur(6px);
+  pointer-events: none;
+  opacity: calc(0.1 + (var(--intro-fade) * 0.9));
+  transition: opacity 0.28s ease;
 }
 
 .showreel-aura {
@@ -1592,37 +1622,74 @@ body.reveal-ready .section.is-revealed {
   background: radial-gradient(circle, rgba(255, 255, 255, 0.17), transparent 72%);
 }
 
+.showreel-vignette {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 50%, transparent 0 38%, rgba(0, 0, 0, 0.18) 62%, rgba(0, 0, 0, 0.6) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.14), rgba(0, 0, 0, 0.42));
+}
+
 .showreel-orbit {
   position: absolute;
   inset: -5% -6% -10%;
+  z-index: 3;
   transform-style: preserve-3d;
   transform:
     translate3d(0, var(--orbit-offset-y), 0)
     rotateX(calc(8deg + (var(--scroll-pitch) * 0.5)))
     rotateZ(-0.9deg);
+  opacity: 1;
+  scale: 1;
+  will-change: transform;
+}
+
+.showreel-orbit-card-shell {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform-style: preserve-3d;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  transform:
+    translate(-50%, -50%)
+    rotateY(calc(((360deg / var(--item-total)) * var(--item-index) * var(--orbit-open)) + var(--orbit-rotation)))
+    translateZ(calc((42px * (1 - var(--orbit-open))) + (var(--orbit-radius) * var(--orbit-open)) + var(--depth-shift)))
+    rotateY(calc(-1 * ((((360deg / var(--item-total)) * var(--item-index)) * var(--orbit-open)) + var(--orbit-rotation))));
+  will-change: transform;
+}
+
+.showreel-orbit-card-intro {
+  transform:
+    translate3d(
+      calc(var(--stack-x) * (1 - var(--orbit-open))),
+      calc(var(--stack-y) * (1 - var(--orbit-open))),
+      calc(var(--stack-z) * (1 - var(--orbit-open)))
+    )
+    rotateX(calc(var(--stack-rx) * (1 - var(--orbit-open))))
+    rotateZ(calc(var(--stack-rz) * (1 - var(--orbit-open))))
+    scale(calc(var(--stack-scale) + ((1 - var(--stack-scale)) * var(--orbit-open))));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+  will-change: transform;
 }
 
 .showreel-orbit-card {
   all: unset;
-  position: absolute;
-  left: 50%;
-  top: 50%;
+  display: block;
   width: clamp(174px, 14.8vw, 248px);
   aspect-ratio: var(--card-ratio, 0.5625);
   border-radius: 14px;
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: hidden;
   cursor: pointer;
-  transform-style: preserve-3d;
-  transform:
-    translate(-50%, -50%)
-    rotateY(calc((360deg / var(--item-total)) * var(--item-index) + var(--orbit-rotation)))
-    translateZ(calc(var(--orbit-radius) + var(--depth-shift)))
-    rotateY(calc(-1 * ((360deg / var(--item-total)) * var(--item-index) + var(--orbit-rotation))));
-  transition: border-color 0.3s ease, box-shadow 0.3s ease;
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.6);
+  -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
-  will-change: transform;
+  outline: 1px solid transparent;
+  transition: none;
 }
 
 .showreel-orbit-card.is-landscape {
@@ -1641,25 +1708,16 @@ body.reveal-ready .section.is-revealed {
 .showreel-orbit-card video {
   width: 100%;
   height: 100%;
+  display: block;
   object-fit: cover;
   object-position: center;
   background: transparent;
-}
-
-.showreel-orbit-card span {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  padding: 0.42rem 0.5rem;
-  font-size: 0.63rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-  color: #f1f1f1;
-  background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.72));
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .showreel-focus {
+  margin-top: 1rem;
   position: relative;
   z-index: 3;
   width: 100%;
@@ -3351,21 +3409,24 @@ body.reveal-ready .section.is-revealed {
     min-height: auto;
   }
 
+  .showreel-stage-shell {
+    min-height: 156vh;
+  }
+
   .showreel-sticky {
     --orbit-radius: 270px;
     --orbit-offset-y: 18px;
-    position: relative;
-    top: 0;
-    min-height: auto;
+    top: calc(74px + 0.35rem);
+    min-height: calc(100svh - 74px - 0.7rem);
   }
 
   .showreel-layout {
     grid-template-columns: 1fr;
-    min-height: auto;
+    min-height: calc(100svh - 74px - 0.7rem);
   }
 
   .showreel-scene {
-    min-height: 78vh;
+    min-height: calc(100svh - 74px - 1.8rem);
   }
 
   .showreel-hint {
@@ -3374,11 +3435,6 @@ body.reveal-ready .section.is-revealed {
 
   .showreel-orbit-card {
     width: clamp(138px, 23vw, 188px);
-    transform:
-      translate(-50%, -50%)
-      rotateY(calc((360deg / var(--item-total)) * var(--item-index) + var(--orbit-rotation)))
-      translateZ(calc(var(--orbit-radius) + var(--depth-shift)))
-      rotateY(calc(-1 * ((360deg / var(--item-total)) * var(--item-index) + var(--orbit-rotation))));
   }
 
   .showreel-orbit-card.is-landscape {

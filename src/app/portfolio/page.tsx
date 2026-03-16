@@ -24,7 +24,8 @@ export default function PortfolioPage() {
             <p className="section-kicker">Video Showreel</p>
             <h2 className="section-title">Showreel</h2>
             <p className="section-copy">
-              Select a clip in the orbit to load it in the focus player.
+              Scroll a little to let the snippets settle into the orbit, then drag or select a
+              clip to load it in the focus player.
             </p>
             <ShowreelOrbit videos={showreelVideos} />
           </div>

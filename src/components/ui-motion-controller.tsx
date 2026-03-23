@@ -4,6 +4,8 @@ import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 const BUTTON_SELECTOR = ".button-primary, .button-secondary, .header-cta, .case-link";
+const MOTION_TARGET_SELECTOR =
+  ".work-tile-link, .featured-proof-item, .featured-result-panel, .case-cta-strip, .case-asset-card, .calendly-block, .cta-band";
 
 export function UiMotionController() {
   const pathname = usePathname();
@@ -29,6 +31,26 @@ export function UiMotionController() {
       section.classList.remove("is-revealed");
       section.style.setProperty("--reveal-delay", `${Math.min(index * 35, 140)}ms`);
       observer.observe(section);
+    });
+
+    const motionTargets = Array.from(
+      document.querySelectorAll<HTMLElement>(MOTION_TARGET_SELECTOR),
+    );
+    const motionObserver = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-motion-visible");
+            motionObserver.unobserve(entry.target);
+          }
+        }
+      },
+      { rootMargin: "0px 0px -8% 0px", threshold: 0.18 },
+    );
+
+    motionTargets.forEach((target) => {
+      target.classList.remove("is-motion-visible");
+      motionObserver.observe(target);
     });
 
     const buttons = Array.from(document.querySelectorAll<HTMLElement>(BUTTON_SELECTOR));
@@ -64,6 +86,7 @@ export function UiMotionController() {
 
     return () => {
       observer.disconnect();
+      motionObserver.disconnect();
       cleanup.forEach((fn) => fn());
     };
   }, [pathname]);

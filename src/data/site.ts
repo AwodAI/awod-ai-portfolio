@@ -57,8 +57,7 @@ export const navLinks = [
   { href: "/", label: "Home" },
   { href: "/portfolio", label: "Portfolio" },
   { href: "/services", label: "Services" },
-  { href: "/about", label: "About" },
-  { href: "/contact", label: "Booking" },
+  { href: "/contact", label: "About & Booking" },
 ];
 
 export const stats = [
